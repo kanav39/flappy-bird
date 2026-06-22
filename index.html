@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en'>
+<html lang="en">
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,7 +19,8 @@
       background-color: #70c5ce;
       border: 4px solid #fff;
       border-radius: 10px;
-      border-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
   </style>
 </head>
 <body>
@@ -38,7 +39,7 @@
     window.addEventListener("keydown", function(e) {
       if (e.code === "Space") flap();
     });
-    window.addEventListener("touchstart, flap);
+    window.addEventListener("touchstart", flap);
      function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       velocity += gravity;
