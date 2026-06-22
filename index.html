@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en'>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Bird-Day 1</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #222;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+    canvas {
+      background-color: #70c5ce;
+      border: 4px solid #fff;
+      border-radius: 10px;
+      border-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="400" height="500"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    let birdY = 200;
+    let velocity = 0;
+    const gravity = 0.4;
+    const jump = -7;
+
+    function flap() {
+      velocity = jump;
+    }
+    window.addEventListener("keydown", function(e) {
+      if (e.code === "Space") flap();
+    });
+    window.addEventListener("touchstart, flap);
+     function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      velocity += gravity;
+      birdY += velocity;
+
+      if (birdY > canvas.height - 30) {
+        birdY = canvas.height - 30;
+        velocity = 0;
+      }
+      ctx.fillStyle = "#fbd561";
+      ctx.fillRect(50, birdY, 30, 30);
+
+      requestAnimationFrame(gameLoop);
+    }
+    gameLoop();
+  </script>
+</body>
+</html>
+  
