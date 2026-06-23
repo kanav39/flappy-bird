@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flappy Bird-Day 1</title>
+  <title>Flappy Bird - Day 2</title>
   <style>
     body {
       margin: 0;
@@ -28,10 +28,12 @@
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
+    
     let birdY = 200;
     let velocity = 0;
     const gravity = 0.4;
     const jump = -7;
+    
     let pipes = [];
     const pipeWidth = 60;
     const pipeGap = 130;
@@ -40,11 +42,12 @@
     function flap() {
       velocity = jump;
     }
+    
     window.addEventListener("keydown", function(e) {
       if (e.code === "Space") flap();
     });
     window.addEventListener("touchstart", flap);
-
+    
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       velocity += gravity;
@@ -54,36 +57,39 @@
         birdY = canvas.height - 30;
         velocity = 0;
       }
-       frameCount++;
-       if (frameCount % 100 ===0) {
-  // generate a random height for the top pipe
+      
+      frameCount++;
+      
+      if (frameCount % 100 === 0) {
          let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
-
          pipes.push({
            x: canvas.width,
            top: topPipeHeight
          });
-       }
-         ctx.fillStyle = "#73bf2e";
-         for (let i = 0; i < pipes.length; i++) {
-           let p = pipes[i];
-           p.x -= 2;
-           ctx.fillRect(p.x, 0, pipeWidth, p.top);
-           let bottomPipeY = p.top + pipeGap;
-           let bottomPipeHeight = canvas.height - bottomPipeY;
-           ctx.fillRect(p.x, bottomPipeY, pipeWidth , bottomPipeHeight);
+      }
+      
+      ctx.fillStyle = "#73bf2e";
+      for (let i = 0; i < pipes.length; i++) {
+        let p = pipes[i];
+        p.x -= 2;
+        ctx.fillRect(p.x, 0, pipeWidth, p.top);
+        
+        let bottomPipeY = p.top + pipeGap;
+        let bottomPipeHeight = canvas.height - bottomPipeY;
+        ctx.fillRect(p.x, bottomPipeY, pipeWidth, bottomPipeHeight);
 
-           if (p.x + pipeWidth < 0) {
-             pipes.splice(i,1);
-             i--;
-           }
-         }
-        ctx.fillStyle = "#fbd561";
+        if (p.x + pipeWidth < 0) {
+          pipes.splice(i, 1);
+          i--;
+        }
+      }
+         
+      ctx.fillStyle = "#fbd561";
       ctx.fillRect(50, birdY, 30, 30);
 
       requestAnimationFrame(gameLoop);
     }
-
+    
     gameLoop();
   </script>
 </body>
