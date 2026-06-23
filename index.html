@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flappy Bird - Complete Game</title>
+  <title>Flappy Bird - Master Edition</title>
   <style>
     body {
       margin: 0;
@@ -13,13 +13,13 @@
       align-items: center;
       height: 100vh;
       overflow: hidden;
-      font-family: sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     canvas {
       background-color: #70c5ce;
       border: 4px solid #fff;
       border-radius: 10px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
     }
   </style>
 </head>
@@ -29,140 +29,204 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
+    // GAME STATES: "START", "PLAYING", "GAMEOVER"
+    let gameState = "START";
+    
     // BIRD VARIABLES
     let birdY = 200;
     let velocity = 0;
     const gravity = 0.4;
     const jump = -7;
     
-    // PIPE VARIABLES
+    // GAME WORLD VARIABLES
     let pipes = [];
     const pipeWidth = 60;
     const pipeGap = 130;
     let frameCount = 0;
+    let clouds = [];
+    let currentSpeed = 2; // Starting pipe speed
     
-    // SCORE VARIABLE
+    // SCORE VARIABLES
     let score = 0;
     let highScore = localStorage.getItem("flappyHighScore") || 0;
-    let clouds = [];
-    function flap() {
-      velocity = jump;
+    
+    // INITIALIZE STARTING CLOUDS
+    for(let i=0; i<3; i++) {
+        clouds.push({ x: Math.random() * canvas.width, y: Math.random() * 200 + 20, speed: Math.random() * 0.5 + 0.5 });
     }
-    
-    window.addEventListener("keydown", function(e) {
-      if (e.code === "Space") flap();
-    });
-    window.addEventListener("touchstart", flap);
-    
-    function gameLoop() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // BIRD PHYSICS
-      velocity += gravity;
-      birdY += velocity;
 
-      // FLOOR COLLISION (RESETS GAME)
-      if (birdY > canvas.height - 30) {
-        // Save score if you hit the floor!
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem("flappyHighScore", highScore);
-        }
-        
+    // USER CONTROLS (DESKTOP & MOBILE)
+    function flap() {
+      if (gameState === "START") {
+        gameState = "PLAYING";
+        velocity = jump;
+      } else if (gameState === "PLAYING") {
+        velocity = jump;
+      } else if (gameState === "GAMEOVER") {
+        // Reset Game
         birdY = 200;
         velocity = 0;
         pipes = [];
         score = 0;
         frameCount = 0;
+        currentSpeed = 2;
+        gameState = "START";
       }
-      
-      frameCount++;
-      if (frameCount % 150 === 0) {
-        clouds.push({
-          x: canvas.width,
-          y: Math.random() * 200 + 20,
-          speed: Math.random() * 0.5 + 0.5
-        });
+    }
+    
+    window.addEventListener("keydown", function(e) {
+      if (e.code === "Space") flap();
+    });
+    
+    window.addEventListener("touchstart", function(e) {
+      e.preventDefault(); 
+      flap();
+    }, {passive: false});
+    
+    function drawClouds() {
+      if (frameCount % 150 === 0 && gameState === "PLAYING") {
+        clouds.push({ x: canvas.width, y: Math.random() * 200 + 20, speed: Math.random() * 0.5 + 0.5 });
       }
       ctx.font = "40px sans-serif";
       for (let i = 0; i < clouds.length; i++) {
         let c = clouds[i];
-        c.x -= c.speed;
-        ctx.fillText("☁" , c.x , c.y);
+        if (gameState === "PLAYING") c.x -= c.speed;
+        ctx.fillText("☁️", c.x, c.y);
         if (c.x + 50 < 0) {
-          clouds.splice(i,1);
+          clouds.splice(i, 1);
           i--;
         }
       }
-      // SPAWN PIPES
-      if (frameCount % 100 === 0) {
-         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
-         pipes.push({
-           x: canvas.width,
-           top: topPipeHeight
-         });
+    }
+
+    function triggerGameOver() {
+      gameState = "GAMEOVER";
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem("flappyHighScore", highScore);
+      }
+    }
+
+    // MAIN ENGINE
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // BACKGROUND
+      drawClouds();
+
+      if (gameState === "START") {
+        // Draw hovering bird
+        birdY = 200 + Math.sin(Date.now() / 200) * 5; 
+        ctx.font = "30px sans-serif";
+        ctx.fillText("🐦", 50, birdY + 25);
+        
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 30px sans-serif";
+        ctx.fillText("FLAPPY BIRD", 100, 200);
+        ctx.font = "20px sans-serif";
+        ctx.fillText("Tap or Space to Start", 105, 250);
+        
+        requestAnimationFrame(gameLoop);
+        return;
+      }
+
+      if (gameState === "GAMEOVER") {
+        ctx.fillStyle = "#73bf2e";
+        for (let p of pipes) {
+          ctx.fillRect(p.x, 0, pipeWidth, p.top);
+          ctx.fillRect(p.x, p.top + pipeGap, pipeWidth, canvas.height - (p.top + pipeGap));
+        }
+        
+        // Draw dead bird falling
+        if (birdY < canvas.height - 30) birdY += 5;
+        ctx.save();
+        ctx.translate(50 + 15, birdY + 15);
+        ctx.rotate(Math.PI / 2); // Point straight down
+        ctx.font = "30px sans-serif";
+        ctx.fillText("🐦", -15, 10);
+        ctx.restore();
+
+        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 40px sans-serif";
+        ctx.fillText("GAME OVER", 75, 230);
+        ctx.font = "20px sans-serif";
+        ctx.fillText("Tap or Space to Restart", 95, 270);
+        ctx.fillText("Score: " + score, 155, 310);
+        
+        requestAnimationFrame(gameLoop);
+        return; 
       }
       
-      // DRAW & MOVE PIPES
+      // --- PLAYING STATE ---
+      velocity += gravity;
+      birdY += velocity;
+      frameCount++;
+
+      // Progressive Difficulty (Speed up every 5 points)
+      currentSpeed = 2 + Math.floor(score / 5) * 0.5;
+
+      // FLOOR COLLISION
+      if (birdY > canvas.height - 30) {
+        triggerGameOver(); 
+      }
+
+      // PIPE ENGINE
+      if (frameCount % Math.max(60, 100 - Math.floor(score/5)*10) === 0) {
+         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
+         pipes.push({ x: canvas.width, top: topPipeHeight });
+      }
+      
       ctx.fillStyle = "#73bf2e";
       for (let i = 0; i < pipes.length; i++) {
         let p = pipes[i];
-        p.x -= 2;
+        p.x -= currentSpeed;
         
-        // Draw Top Pipe
-        ctx.fillRect(p.x, 0, pipeWidth, p.top);
-        
-        // Draw Bottom Pipe
         let bottomPipeY = p.top + pipeGap;
         let bottomPipeHeight = canvas.height - bottomPipeY;
+        ctx.fillRect(p.x, 0, pipeWidth, p.top);
         ctx.fillRect(p.x, bottomPipeY, pipeWidth, bottomPipeHeight);
 
-       // BOX COLLISION DETECTION
-        if (
-          50 + 30 > p.x && 
-          50 < p.x + pipeWidth && 
-          (birdY < p.top || birdY + 30 > p.top + pipeGap)
-        ) {
-          // Fixed the typo and capitalization here!
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem("flappyHighScore", highScore);
-          }
-          
-          birdY = 200;
-          velocity = 0;
-          pipes = [];
-          score = 0;
-          frameCount = 0;
+        // BOX COLLISION
+        if (50 + 30 > p.x && 50 < p.x + pipeWidth && (birdY < p.top || birdY + 30 > p.top + pipeGap)) {
+          triggerGameOver(); 
         }
 
-        // SCORE CALCULATION
-        if (p.x === 50) {
+        // SCORE
+        if (p.x + pipeWidth < 50 && !p.scored) {
           score++;
+          p.scored = true;
         }
 
-        // REMOVE OFF-SCREEN PIPES
         if (p.x + pipeWidth < 0) {
           pipes.splice(i, 1);
           i--;
         }
       }
          
-      // DRAW BIRD
-      // --- DAY 4: RENDER BIRD SPRITE ---
+      // DRAW BIRD WITH TILT PHYSICS
+      ctx.save();
+      ctx.translate(50 + 15, birdY + 15);
+      let rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (velocity * 0.1)));
+      ctx.rotate(rotation);
       ctx.font = "30px sans-serif";
-      ctx.fillText("🐦", 50, birdY + 25); // +25 aligns the emoji perfectly with our hit-box
+      ctx.fillText("🐦", -15, 10);
+      ctx.restore();
 
-      // DRAW SCOREBOARD
+      // RENDER SCORES
       ctx.fillStyle = "#fff";
       ctx.font = "bold 24px sans-serif";
       ctx.fillText("Score: " + score, 20, 40);
       ctx.fillText("High Score: " + highScore, 20, 70);
+      
       requestAnimationFrame(gameLoop);
     }
     
+    // Start the engine
     gameLoop();
   </script>
 </body>
 </html>
-  
