@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flappy Bird - Day 2</title>
+  <title>Flappy Bird - Complete Game</title>
   <style>
     body {
       margin: 0;
@@ -29,15 +29,20 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
+    // BIRD VARIABLES
     let birdY = 200;
     let velocity = 0;
     const gravity = 0.4;
     const jump = -7;
     
+    // PIPE VARIABLES
     let pipes = [];
     const pipeWidth = 60;
     const pipeGap = 130;
     let frameCount = 0;
+    
+    // SCORE VARIABLE
+    let score = 0;
     
     function flap() {
       velocity = jump;
@@ -50,16 +55,23 @@
     
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // BIRD PHYSICS
       velocity += gravity;
       birdY += velocity;
 
+      // FLOOR COLLISION (RESETS GAME)
       if (birdY > canvas.height - 30) {
-        birdY = canvas.height - 30;
+        birdY = 200;
         velocity = 0;
+        pipes = [];
+        score = 0;
+        frameCount = 0;
       }
       
       frameCount++;
       
+      // SPAWN PIPES
       if (frameCount % 100 === 0) {
          let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
          pipes.push({
@@ -68,24 +80,53 @@
          });
       }
       
+      // DRAW & MOVE PIPES
       ctx.fillStyle = "#73bf2e";
       for (let i = 0; i < pipes.length; i++) {
         let p = pipes[i];
         p.x -= 2;
+        
+        // Draw Top Pipe
         ctx.fillRect(p.x, 0, pipeWidth, p.top);
         
+        // Draw Bottom Pipe
         let bottomPipeY = p.top + pipeGap;
         let bottomPipeHeight = canvas.height - bottomPipeY;
         ctx.fillRect(p.x, bottomPipeY, pipeWidth, bottomPipeHeight);
 
+        // BOX COLLISION DETECTION
+        if (
+          50 + 30 > p.x && 
+          50 < p.x + pipeWidth && 
+          (birdY < p.top || birdY + 30 > p.top + pipeGap)
+        ) {
+          birdY = 200;
+          velocity = 0;
+          pipes = [];
+          score = 0;
+          frameCount = 0;
+        }
+
+        // SCORE CALCULATION
+        if (p.x === 50) {
+          score++;
+        }
+
+        // REMOVE OFF-SCREEN PIPES
         if (p.x + pipeWidth < 0) {
           pipes.splice(i, 1);
           i--;
         }
       }
          
+      // DRAW BIRD
       ctx.fillStyle = "#fbd561";
       ctx.fillRect(50, birdY, 30, 30);
+
+      // DRAW SCOREBOARD
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 24px sans-serif";
+      ctx.fillText("Score: " + score, 20, 40);
 
       requestAnimationFrame(gameLoop);
     }
