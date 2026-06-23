@@ -32,7 +32,11 @@
     let velocity = 0;
     const gravity = 0.4;
     const jump = -7;
-
+    let pipes = [];
+    const pipeWidth = 60;
+    const pipeGap = 130;
+    let frameCount = 0;
+    
     function flap() {
       velocity = jump;
     }
@@ -49,6 +53,30 @@
         birdY = canvas.height - 30;
         velocity = 0;
       }
+       frameCount++;
+       if frameCount( % 100 ===0) {
+  // generate a random height for the top pipe
+         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
+
+         pipes.push({
+           x: canvas.width,
+           top: topPipeHeight
+         });
+         ctx.fillStyle = "#73bf2e";
+         for (let i = 0; i < pipes.length; i++) {
+           let p = pipes[i];
+           p.x -= 2;
+           ctx.fillRect(p.x, 0, pipeWidth, p.top);
+           let bottomPipeY = p.top + pipegap;
+           let bottomPipeheight = canvas.height - bottomPipeY;
+           ctx.fillRect(p.x, bottomPipeY, pipeWidth , bottomPipeHeight);
+
+           if (p.x + pipeWidth < 0) {
+             pipes.splice(i,1);
+             i--;
+           }
+         }
+         
       ctx.fillStyle = "#fbd561";
       ctx.fillRect(50, birdY, 30, 30);
 
