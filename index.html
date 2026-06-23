@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Flappy Bird - Master Edition</title>
   <style>
     body {
       margin: 0;
+      padding: 0;
       background-color: #222;
       display: flex;
       justify-content: center;
@@ -17,23 +18,29 @@
     }
     canvas {
       background-color: #70c5ce;
-      border: 4px solid #fff;
-      border-radius: 10px;
+      /* On mobile, take up full screen. On desktop, limit max dimensions to stay looking like a proper game */
+      max-width: 100%;
+      max-height: 100vh;
       box-shadow: 0 10px 40px rgba(0,0,0,0.8);
     }
   </style>
 </head>
 <body>
-  <canvas id="gameCanvas" width="400" height="500"></canvas>
+  <canvas id="gameCanvas"></canvas>
   <script>
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
+    // DYNAMIC RESPONIVE SCREEN SIZING
+    // Detects device screen sizes. If on a massive desktop, falls back to a perfect arcade proportion.
+    canvas.width = window.innerWidth < 450 ? window.innerWidth : 400;
+    canvas.height = window.innerHeight < 600 ? window.innerHeight : 600;
+    
     // GAME STATES: "START", "PLAYING", "GAMEOVER"
     let gameState = "START";
     
-    // BIRD VARIABLES
-    let birdY = 200;
+    // BIRD VARIABLES (Positions adapt smoothly based on your custom height scaling layout configuration)
+    let birdY = canvas.height / 2.5;
     let velocity = 0;
     const gravity = 0.4;
     const jump = -7;
@@ -45,7 +52,7 @@
     let frameCount = 0;
     let clouds = [];
     let currentSpeed = 2; 
-    const minPipeDistance = 200; // Guaranteed horizontal pixel space between pipes
+    const minPipeDistance = 200; 
     
     // SCORE VARIABLES
     let score = 0;
@@ -64,7 +71,7 @@
       } else if (gameState === "PLAYING") {
         velocity = jump;
       } else if (gameState === "GAMEOVER") {
-        birdY = 200;
+        birdY = canvas.height / 2.5;
         velocity = 0;
         pipes = [];
         score = 0;
@@ -85,7 +92,7 @@
     
     function drawClouds() {
       if (frameCount % 150 === 0 && gameState === "PLAYING") {
-        clouds.push({ x: canvas.width, y: Math.random() * 200 + 20, speed: Math.random() * 0.5 + 0.5 });
+        clouds.push({ x: canvas.width, y: Math.random() * (canvas.height / 2.5) + 20, speed: Math.random() * 0.5 + 0.5 });
       }
       ctx.font = "40px sans-serif";
       for (let i = 0; i < clouds.length; i++) {
@@ -115,7 +122,7 @@
       drawClouds();
 
       if (gameState === "START") {
-        birdY = 200 + Math.sin(Date.now() / 200) * 5; 
+        birdY = (canvas.height / 2.5) + Math.sin(Date.now() / 200) * 5; 
         
         ctx.save();
         ctx.translate(50 + 15, birdY + 15);
@@ -127,10 +134,11 @@
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 30px sans-serif";
-        ctx.fillText("FLAPPY BIRD", 100, 200);
+        // Dynamically align text blocks relative to runtime center-point coordinate positions
+        ctx.font = "bold 34px sans-serif";
+        ctx.fillText("FLAPPY BIRD", (canvas.width / 2) - 105, canvas.height / 2 - 30);
         ctx.font = "20px sans-serif";
-        ctx.fillText("Tap or Space to Start", 105, 250);
+        ctx.fillText("Tap or Space to Start", (canvas.width / 2) - 95, canvas.height / 2 + 20);
         
         requestAnimationFrame(gameLoop);
         return;
@@ -157,10 +165,10 @@
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 40px sans-serif";
-        ctx.fillText("GAME OVER", 75, 230);
+        ctx.fillText("GAME OVER", (canvas.width / 2) - 120, canvas.height / 2 - 20);
         ctx.font = "20px sans-serif";
-        ctx.fillText("Tap or Space to Restart", 95, 270);
-        ctx.fillText("Score: " + score, 155, 310);
+        ctx.fillText("Tap or Space to Restart", (canvas.width / 2) - 105, canvas.height / 2 + 20);
+        ctx.fillText("Score: " + score, (canvas.width / 2) - 45, canvas.height / 2 + 60);
         
         requestAnimationFrame(gameLoop);
         return; 
@@ -171,15 +179,14 @@
       birdY += velocity;
       frameCount++;
 
-      // Progressive Speed Difficulty cap
       currentSpeed = 2 + Math.min(3, Math.floor(score / 5) * 0.5);
 
-      // FLOOR COLLISION
+      // FLOOR COLLISION (Accounts for dynamic runtime height limitations)
       if (birdY > canvas.height - 30) {
         triggerGameOver(); 
       }
 
-      // FIXED PIPE SPAWN ENGINE (SPAWNS BY DISTANCE, NOT TIME)
+      // FIXED PIPE SPAWN ENGINE
       let canSpawnPipe = false;
       if (pipes.length === 0) {
         canSpawnPipe = true;
