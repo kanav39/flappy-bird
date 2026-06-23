@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Flappy Bird - Master Edition</title>
+  <title>Flappy Bird - True Fullscreen</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background-color: #222;
+      background-color: #70c5ce; /* Matches sky color to prevent any seams */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -17,11 +17,9 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     canvas {
-      background-color: #70c5ce;
-      /* On mobile, take up full screen. On desktop, limit max dimensions to stay looking like a proper game */
-      max-width: 100%;
-      max-height: 100vh;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      display: block;
+      width: 100vw;
+      height: 100vh;
     }
   </style>
 </head>
@@ -31,16 +29,15 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     
-    // DYNAMIC RESPONIVE SCREEN SIZING
-    // Detects device screen sizes. If on a massive desktop, falls back to a perfect arcade proportion.
-    canvas.width = window.innerWidth < 450 ? window.innerWidth : 400;
-    canvas.height = window.innerHeight < 600 ? window.innerHeight : 600;
+    // TRUE FULLSCREEN ENGINE
+    // Automatically grabs 100% of the screen dimensions, no matter the device
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     
-    // GAME STATES: "START", "PLAYING", "GAMEOVER"
     let gameState = "START";
     
-    // BIRD VARIABLES (Positions adapt smoothly based on your custom height scaling layout configuration)
-    let birdY = canvas.height / 2.5;
+    // BIRD VARIABLES (Dynamically centered based on screen height)
+    let birdY = canvas.height / 2;
     let velocity = 0;
     const gravity = 0.4;
     const jump = -7;
@@ -48,22 +45,21 @@
     // GAME WORLD VARIABLES
     let pipes = [];
     const pipeWidth = 60;
-    const pipeGap = 130;
+    const pipeGap = 140; // Slightly larger gap for better fullscreen gameplay balance
     let frameCount = 0;
     let clouds = [];
-    let currentSpeed = 2; 
-    const minPipeDistance = 200; 
+    let currentSpeed = 3; // Slightly faster base speed to account for wider screens
+    const minPipeDistance = 250; // Keeps pipes perfectly spaced across massive screens
     
     // SCORE VARIABLES
     let score = 0;
     let highScore = localStorage.getItem("flappyHighScore") || 0;
     
     // INITIALIZE STARTING CLOUDS
-    for(let i=0; i<3; i++) {
-        clouds.push({ x: Math.random() * canvas.width, y: Math.random() * 200 + 20, speed: Math.random() * 0.5 + 0.5 });
+    for(let i=0; i<5; i++) {
+        clouds.push({ x: Math.random() * canvas.width, y: Math.random() * (canvas.height / 2), speed: Math.random() * 0.5 + 0.5 });
     }
 
-    // USER CONTROLS (DESKTOP & MOBILE)
     function flap() {
       if (gameState === "START") {
         gameState = "PLAYING";
@@ -71,12 +67,11 @@
       } else if (gameState === "PLAYING") {
         velocity = jump;
       } else if (gameState === "GAMEOVER") {
-        birdY = canvas.height / 2.5;
+        birdY = canvas.height / 2;
         velocity = 0;
         pipes = [];
         score = 0;
         frameCount = 0;
-        currentSpeed = 2;
         gameState = "START";
       }
     }
@@ -91,8 +86,8 @@
     }, {passive: false});
     
     function drawClouds() {
-      if (frameCount % 150 === 0 && gameState === "PLAYING") {
-        clouds.push({ x: canvas.width, y: Math.random() * (canvas.height / 2.5) + 20, speed: Math.random() * 0.5 + 0.5 });
+      if (frameCount % 120 === 0 && gameState === "PLAYING") {
+        clouds.push({ x: canvas.width, y: Math.random() * (canvas.height / 2), speed: Math.random() * 0.5 + 0.5 });
       }
       ctx.font = "40px sans-serif";
       for (let i = 0; i < clouds.length; i++) {
@@ -114,29 +109,26 @@
       }
     }
 
-    // MAIN ENGINE
     function gameLoop() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // BACKGROUND
       drawClouds();
 
       if (gameState === "START") {
-        birdY = (canvas.height / 2.5) + Math.sin(Date.now() / 200) * 5; 
+        birdY = (canvas.height / 2) + Math.sin(Date.now() / 200) * 5; 
         
         ctx.save();
-        ctx.translate(50 + 15, birdY + 15);
+        ctx.translate(100 + 15, birdY + 15); // Shifted slightly right for widescreen feel
         ctx.scale(-1, 1); 
         ctx.font = "30px sans-serif";
         ctx.fillText("🐦", -15, 10);
         ctx.restore();
         
-        ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#fff";
-        // Dynamically align text blocks relative to runtime center-point coordinate positions
-        ctx.font = "bold 34px sans-serif";
-        ctx.fillText("FLAPPY BIRD", (canvas.width / 2) - 105, canvas.height / 2 - 30);
+        ctx.font = "bold 40px sans-serif";
+        ctx.fillText("FLAPPY BIRD", (canvas.width / 2) - 120, canvas.height / 2 - 30);
         ctx.font = "20px sans-serif";
         ctx.fillText("Tap or Space to Start", (canvas.width / 2) - 95, canvas.height / 2 + 20);
         
@@ -154,14 +146,14 @@
         if (birdY < canvas.height - 30) birdY += 5;
         
         ctx.save();
-        ctx.translate(50 + 15, birdY + 15);
+        ctx.translate(100 + 15, birdY + 15);
         ctx.scale(-1, 1); 
         ctx.rotate(-Math.PI / 2); 
         ctx.font = "30px sans-serif";
         ctx.fillText("🐦", -15, 10);
         ctx.restore();
 
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 40px sans-serif";
@@ -174,19 +166,19 @@
         return; 
       }
       
-      // --- PLAYING STATE ---
+      // PHYSICS
       velocity += gravity;
       birdY += velocity;
       frameCount++;
 
-      currentSpeed = 2 + Math.min(3, Math.floor(score / 5) * 0.5);
+      currentSpeed = 3 + Math.min(4, Math.floor(score / 5) * 0.5);
 
-      // FLOOR COLLISION (Accounts for dynamic runtime height limitations)
-      if (birdY > canvas.height - 30) {
+      // GROUND COLLISION
+      if (birdY > canvas.height - 40) {
         triggerGameOver(); 
       }
 
-      // FIXED PIPE SPAWN ENGINE
+      // PIPE GENERATION
       let canSpawnPipe = false;
       if (pipes.length === 0) {
         canSpawnPipe = true;
@@ -198,11 +190,10 @@
       }
 
       if (canSpawnPipe) {
-         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2.5)) + 40;
+         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2.5)) + 60;
          pipes.push({ x: canvas.width, top: topPipeHeight, scored: false });
       }
       
-      // DRAW & MOVE PIPES
       ctx.fillStyle = "#73bf2e";
       for (let i = 0; i < pipes.length; i++) {
         let p = pipes[i];
@@ -213,13 +204,12 @@
         ctx.fillRect(p.x, 0, pipeWidth, p.top);
         ctx.fillRect(p.x, bottomPipeY, pipeWidth, bottomPipeHeight);
 
-        // BOX COLLISION
-        if (50 + 30 > p.x && 50 < p.x + pipeWidth && (birdY < p.top || birdY + 30 > p.top + pipeGap)) {
+        // COLLISION (Bird is fixed at X = 100 for better widescreen perspective)
+        if (100 + 30 > p.x && 100 < p.x + pipeWidth && (birdY < p.top || birdY + 30 > p.top + pipeGap)) {
           triggerGameOver(); 
         }
 
-        // SCORE CALCULATION
-        if (p.x + pipeWidth < 50 && !p.scored) {
+        if (p.x + pipeWidth < 100 && !p.scored) {
           score++;
           p.scored = true;
         }
@@ -230,9 +220,9 @@
         }
       }
          
-      // DRAW BIRD WITH FORWARD TILT PHYSICS
+      // RENDER BIRD
       ctx.save();
-      ctx.translate(50 + 15, birdY + 15);
+      ctx.translate(100 + 15, birdY + 15);
       ctx.scale(-1, 1); 
       let rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (velocity * 0.1)));
       ctx.rotate(-rotation); 
