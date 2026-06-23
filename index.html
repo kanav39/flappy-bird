@@ -45,6 +45,7 @@
     let frameCount = 0;
     let clouds = [];
     let currentSpeed = 2; 
+    const minPipeDistance = 200; // Guaranteed horizontal pixel space between pipes
     
     // SCORE VARIABLES
     let score = 0;
@@ -116,10 +117,9 @@
       if (gameState === "START") {
         birdY = 200 + Math.sin(Date.now() / 200) * 5; 
         
-        // Render Bird facing FORWARD (scaled/flipped)
         ctx.save();
         ctx.translate(50 + 15, birdY + 15);
-        ctx.scale(-1, 1); // Flips emoji horizontally so it faces right
+        ctx.scale(-1, 1); 
         ctx.font = "30px sans-serif";
         ctx.fillText("🐦", -15, 10);
         ctx.restore();
@@ -145,11 +145,10 @@
         
         if (birdY < canvas.height - 30) birdY += 5;
         
-        // Draw dead bird falling forward
         ctx.save();
         ctx.translate(50 + 15, birdY + 15);
         ctx.scale(-1, 1); 
-        ctx.rotate(-Math.PI / 2); // Rotates down safely while flipped
+        ctx.rotate(-Math.PI / 2); 
         ctx.font = "30px sans-serif";
         ctx.fillText("🐦", -15, 10);
         ctx.restore();
@@ -172,19 +171,31 @@
       birdY += velocity;
       frameCount++;
 
-      currentSpeed = 2 + Math.floor(score / 5) * 0.5;
+      // Progressive Speed Difficulty cap
+      currentSpeed = 2 + Math.min(3, Math.floor(score / 5) * 0.5);
 
       // FLOOR COLLISION
       if (birdY > canvas.height - 30) {
         triggerGameOver(); 
       }
 
-      // PIPE ENGINE
-      if (frameCount % Math.max(60, 100 - Math.floor(score/5)*10) === 0) {
-         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
-         pipes.push({ x: canvas.width, top: topPipeHeight });
+      // FIXED PIPE SPAWN ENGINE (SPAWNS BY DISTANCE, NOT TIME)
+      let canSpawnPipe = false;
+      if (pipes.length === 0) {
+        canSpawnPipe = true;
+      } else {
+        let lastPipe = pipes[pipes.length - 1];
+        if (canvas.width - lastPipe.x >= minPipeDistance) {
+          canSpawnPipe = true;
+        }
+      }
+
+      if (canSpawnPipe) {
+         let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2.5)) + 40;
+         pipes.push({ x: canvas.width, top: topPipeHeight, scored: false });
       }
       
+      // DRAW & MOVE PIPES
       ctx.fillStyle = "#73bf2e";
       for (let i = 0; i < pipes.length; i++) {
         let p = pipes[i];
@@ -200,7 +211,7 @@
           triggerGameOver(); 
         }
 
-        // SCORE
+        // SCORE CALCULATION
         if (p.x + pipeWidth < 50 && !p.scored) {
           score++;
           p.scored = true;
@@ -215,12 +226,9 @@
       // DRAW BIRD WITH FORWARD TILT PHYSICS
       ctx.save();
       ctx.translate(50 + 15, birdY + 15);
-      ctx.scale(-1, 1); // Flip horizontally so it faces right natively
-      
-      // Compute rotation angle (reversed to look correct while flipped)
+      ctx.scale(-1, 1); 
       let rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (velocity * 0.1)));
       ctx.rotate(-rotation); 
-      
       ctx.font = "30px sans-serif";
       ctx.fillText("🐦", -15, 10);
       ctx.restore();
