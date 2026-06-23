@@ -44,7 +44,7 @@
     const pipeGap = 130;
     let frameCount = 0;
     let clouds = [];
-    let currentSpeed = 2; // Starting pipe speed
+    let currentSpeed = 2; 
     
     // SCORE VARIABLES
     let score = 0;
@@ -63,7 +63,6 @@
       } else if (gameState === "PLAYING") {
         velocity = jump;
       } else if (gameState === "GAMEOVER") {
-        // Reset Game
         birdY = 200;
         velocity = 0;
         pipes = [];
@@ -115,10 +114,15 @@
       drawClouds();
 
       if (gameState === "START") {
-        // Draw hovering bird
         birdY = 200 + Math.sin(Date.now() / 200) * 5; 
+        
+        // Render Bird facing FORWARD (scaled/flipped)
+        ctx.save();
+        ctx.translate(50 + 15, birdY + 15);
+        ctx.scale(-1, 1); // Flips emoji horizontally so it faces right
         ctx.font = "30px sans-serif";
-        ctx.fillText("🐦", 50, birdY + 25);
+        ctx.fillText("🐦", -15, 10);
+        ctx.restore();
         
         ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -139,11 +143,13 @@
           ctx.fillRect(p.x, p.top + pipeGap, pipeWidth, canvas.height - (p.top + pipeGap));
         }
         
-        // Draw dead bird falling
         if (birdY < canvas.height - 30) birdY += 5;
+        
+        // Draw dead bird falling forward
         ctx.save();
         ctx.translate(50 + 15, birdY + 15);
-        ctx.rotate(Math.PI / 2); // Point straight down
+        ctx.scale(-1, 1); 
+        ctx.rotate(-Math.PI / 2); // Rotates down safely while flipped
         ctx.font = "30px sans-serif";
         ctx.fillText("🐦", -15, 10);
         ctx.restore();
@@ -166,7 +172,6 @@
       birdY += velocity;
       frameCount++;
 
-      // Progressive Difficulty (Speed up every 5 points)
       currentSpeed = 2 + Math.floor(score / 5) * 0.5;
 
       // FLOOR COLLISION
@@ -207,11 +212,15 @@
         }
       }
          
-      // DRAW BIRD WITH TILT PHYSICS
+      // DRAW BIRD WITH FORWARD TILT PHYSICS
       ctx.save();
       ctx.translate(50 + 15, birdY + 15);
+      ctx.scale(-1, 1); // Flip horizontally so it faces right natively
+      
+      // Compute rotation angle (reversed to look correct while flipped)
       let rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (velocity * 0.1)));
-      ctx.rotate(rotation);
+      ctx.rotate(-rotation); 
+      
       ctx.font = "30px sans-serif";
       ctx.fillText("🐦", -15, 10);
       ctx.restore();
@@ -225,7 +234,6 @@
       requestAnimationFrame(gameLoop);
     }
     
-    // Start the engine
     gameLoop();
   </script>
 </body>
