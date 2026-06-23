@@ -54,7 +54,7 @@
         velocity = 0;
       }
        frameCount++;
-       if frameCount( % 100 ===0) {
+       if (frameCount % 100 ===0) {
   // generate a random height for the top pipe
          let topPipeHeight = Math.floor(Math.random() * (canvas.height / 2)) + 50;
 
@@ -62,13 +62,14 @@
            x: canvas.width,
            top: topPipeHeight
          });
+       }
          ctx.fillStyle = "#73bf2e";
          for (let i = 0; i < pipes.length; i++) {
            let p = pipes[i];
            p.x -= 2;
            ctx.fillRect(p.x, 0, pipeWidth, p.top);
-           let bottomPipeY = p.top + pipegap;
-           let bottomPipeheight = canvas.height - bottomPipeY;
+           let bottomPipeY = p.top + pipeGap;
+           let bottomPipeHeight = canvas.height - bottomPipeY;
            ctx.fillRect(p.x, bottomPipeY, pipeWidth , bottomPipeHeight);
 
            if (p.x + pipeWidth < 0) {
@@ -76,12 +77,12 @@
              i--;
            }
          }
-         
-      ctx.fillStyle = "#fbd561";
+        ctx.fillStyle = "#fbd561";
       ctx.fillRect(50, birdY, 30, 30);
 
       requestAnimationFrame(gameLoop);
     }
+
     gameLoop();
   </script>
 </body>
