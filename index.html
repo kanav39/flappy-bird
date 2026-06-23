@@ -63,6 +63,12 @@
 
       // FLOOR COLLISION (RESETS GAME)
       if (birdY > canvas.height - 30) {
+        // Save score if you hit the floor!
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("flappyHighScore", highScore);
+        }
+        
         birdY = 200;
         velocity = 0;
         pipes = [];
@@ -111,15 +117,16 @@
         let bottomPipeHeight = canvas.height - bottomPipeY;
         ctx.fillRect(p.x, bottomPipeY, pipeWidth, bottomPipeHeight);
 
-        // BOX COLLISION DETECTION
+       // BOX COLLISION DETECTION
         if (
           50 + 30 > p.x && 
           50 < p.x + pipeWidth && 
           (birdY < p.top || birdY + 30 > p.top + pipeGap)
         ) {
+          // Fixed the typo and capitalization here!
           if (score > highScore) {
             highScore = score;
-            local.Storage.setItem("flappyHighScore", HighScore);
+            localStorage.setItem("flappyHighScore", highScore);
           }
           
           birdY = 200;
